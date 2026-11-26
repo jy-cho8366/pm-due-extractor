@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>주간 PM 현황판</title>
+<style>
+:root{
+  --bg:#f4f6f9; --surface:#ffffff; --surface2:#eef2f7; --text:#1b2430; --muted:#5b6778; --line:#d8dee7;
+  --brand:#1f4e79; --brand-ink:#ffffff; --accent:#2f6fae; --header-bg:#1f4e79;
+  --over:#c0392b; --over-bg:#fbe3df; --grace:#d9730d; --grace-bg:#fdebd8; --week:#a77c00; --week-bg:#fff3c4;
+  --next:#2f6fae; --next-bg:#e1ecf8; --ok:#3d7a57; --ok-bg:#e3f1e8; --none:#6b7280; --none-bg:#eceff3;
+  --warn-bg:#fff7e0; --warn-line:#e7c35a; --err-bg:#fde8e6; --err-line:#e39b92; --input-bg:#fffbea;
+  --shadow:0 1px 3px rgba(16,24,40,.08);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11161d; --surface:#1a212b; --surface2:#222b37; --text:#e6ebf2; --muted:#9aa6b6; --line:#2e3946;
+    --brand:#7fb2e5; --brand-ink:#0d1620; --accent:#8cbcf0; --header-bg:#16324f;
+    --over:#ff8a7a; --over-bg:#4a2320; --grace:#ffad66; --grace-bg:#47301b; --week:#f2cf5b; --week-bg:#42381a;
+    --next:#8cbcf0; --next-bg:#1f3349; --ok:#7fcf9f; --ok-bg:#1e3a2a; --none:#a3acb9; --none-bg:#2a313b;
+    --warn-bg:#3a3218; --warn-line:#7d6a2a; --err-bg:#43221f; --err-line:#8a4a43; --input-bg:#2c2a1d;
+    --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11161d; --surface:#1a212b; --surface2:#222b37; --text:#e6ebf2; --muted:#9aa6b6; --line:#2e3946;
+  --brand:#7fb2e5; --brand-ink:#0d1620; --accent:#8cbcf0; --header-bg:#16324f;
+  --over:#ff8a7a; --over-bg:#4a2320; --grace:#ffad66; --grace-bg:#47301b; --week:#f2cf5b; --week-bg:#42381a;
+  --next:#8cbcf0; --next-bg:#1f3349; --ok:#7fcf9f; --ok-bg:#1e3a2a; --none:#a3acb9; --none-bg:#2a313b;
+  --warn-bg:#3a3218; --warn-line:#7d6a2a; --err-bg:#43221f; --err-line:#8a4a43; --input-bg:#2c2a1d;
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:"Malgun Gothic","맑은 고딕","Apple SD Gothic Neo",system-ui,sans-serif;font-size:15px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+header.top{background:var(--header-bg);color:#fff}
+header.top .wrap{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding-top:18px;padding-bottom:18px}
+header.top h1{margin:0;font-size:22px;letter-spacing:-.3px}
+header.top p{margin:2px 0 0;opacity:.85;font-size:13.5px}
+.theme-btn{background:transparent;color:#fff;border:1px solid currentColor;border-radius:8px;padding:6px 10px;cursor:pointer;font:inherit;font-size:13px}
+main.wrap{padding-top:18px;padding-bottom:40px}
+.banner{border:1px solid var(--warn-line);background:var(--warn-bg);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:14px}
+.banner.err{border-color:var(--err-line);background:var(--err-bg)}
+.banner[hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:16px;margin-bottom:16px}
+.card h2{margin:0 0 12px;font-size:17px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h2 .sub{font-size:13px;color:var(--muted);font-weight:normal}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ctl-group{display:flex;flex-direction:column;gap:6px}
+.ctl-group label.t{font-size:13px;color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button,.filebtn{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--surface2);color:var(--text);border-radius:8px;padding:7px 12px;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] button.primary{color:#0d1620}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) button.primary{color:#0d1620}}
+button:hover,.filebtn:hover{filter:brightness(.96)}
+input[type=date]{font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text)}
+.filebtn input{display:none}
+.src{font-size:13px;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+.kpi.insp{border-left:5px solid var(--grace)}
+.tile{position:relative}
+.tile .flag{position:absolute;top:3px;right:4px;font-size:10px;font-weight:700;line-height:1;padding:2px 3px;border-radius:4px;background:var(--surface);color:var(--over);border:1px solid currentColor}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:var(--shadow)}
+.kpi .l{font-size:13px;color:var(--muted)}
+.kpi .v{font-size:30px;font-weight:700;line-height:1.2;margin-top:2px}
+.kpi .d{font-size:12.5px;color:var(--muted);margin-top:4px}
+.kpi.main{border-left:5px solid var(--over)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{background:var(--surface2);font-size:13px;color:var(--muted);font-weight:600}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+td.note{white-space:normal;min-width:180px;color:var(--muted);font-size:13px}
+tr:last-child td{border-bottom:none}
+td input[type=date]{background:var(--input-bg);padding:4px 6px;font-size:13px}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12.5px;font-weight:600;border:1px solid transparent}
+.s-over{color:var(--over);background:var(--over-bg)}
+.s-grace{color:var(--grace);background:var(--grace-bg)}
+.s-week{color:var(--week);background:var(--week-bg)}
+.s-next{color:var(--next);background:var(--next-bg)}
+.s-ok{color:var(--ok);background:var(--ok-bg)}
+.s-none{color:var(--none);background:var(--none-bg);border:1px dashed var(--none)}
+.empty{padding:18px;text-align:center;color:var(--muted)}
+.map-group{margin-bottom:14px}
+.map-group h3{margin:0 0 8px;font-size:14px;color:var(--muted);font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px}
+.tile{border-radius:10px;padding:8px 6px;text-align:center;cursor:pointer;border:2px solid transparent;font:inherit}
+.tile b{display:block;font-size:16px}
+.tile span{display:block;font-size:11.5px;margin-top:1px}
+.tile.sel{border-color:var(--text)}
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.detail{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--surface2);font-size:14px;min-height:42px}
+.issues{margin:0;padding-left:18px}
+.issues li{margin:4px 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.two .card{margin-bottom:0}
+details summary{cursor:pointer;font-weight:600}
+.rules{font-size:14px}
+.rules table{min-width:0}
+.rules td,.rules th{white-space:normal}
+footer{color:var(--muted);font-size:12.5px;text-align:center;padding:10px 16px 30px}
+@media (max-width:860px){
+  .controls,.two{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .two .card{margin-bottom:16px}
+}
+@media (max-width:420px){
+  header.top h1{font-size:19px}
+  .kpi .v{font-size:26px}
+}
+@media print{
+  header.top,.controls-card,.theme-btn,footer{display:none}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div>
+      <h1>주간 PM 도래 현황판</h1>
+      <p>하역장비 G/C·T/C 42대 · 이번 주 예방정비(PM) 대상 · PM 부품 준비 · 정기검사 기한 자동 추출</p>
+    </div>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="화면 테마 전환">테마 전환</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="banner" id="dataBanner">현재 <b>테스트용 가상 정비 이력</b>으로 계산한 결과입니다. 실제 이력 엑셀을 올리면 그 데이터로 다시 계산합니다.</div>
+  <div class="banner err" id="errBanner" hidden></div>
+
+  <section class="card controls-card" aria-label="설정">
+    <div class="controls">
+      <div class="ctl-group">
+        <label class="t" for="weekInput">대상 주 (월요일 시작)</label>
+        <div class="row">
+          <button type="button" id="prevWeek">◀ 이전 주</button>
+          <input type="date" id="weekInput">
+          <button type="button" id="nextWeek">다음 주 ▶</button>
+          <button type="button" id="thisWeek">이번 주</button>
+        </div>
+        <div class="src" id="weekLabel"></div>
+      </div>
+      <div class="ctl-group">
+        <span class="t">데이터</span>
+        <div class="row">
+          <label class="filebtn">장비마스터 엑셀 <input type="file" id="fileMaster" accept=".xlsx,.xls"></label>
+          <label class="filebtn">정비이력 엑셀 <input type="file" id="fileHistory" accept=".xlsx,.xls"></label>
+          <button type="button" id="resetData">기본 데이터</button>
+          <button type="button" class="primary" id="exportBtn">엑셀로 내보내기</button>
+        </div>
+        <div class="src" id="srcLabel"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="kpis" aria-label="요약">
+    <div class="kpi main"><div class="l">이번 주 PM 대상</div><div class="v" id="kTarget">-</div><div class="d" id="kTargetD"></div></div>
+    <div class="kpi"><div class="l">다음 주 예고</div><div class="v" id="kNext">-</div><div class="d">다음 주에 도래하는 장비</div></div>
+    <div class="kpi"><div class="l">확인 필요</div><div class="v" id="kIssue">-</div><div class="d">이력 없음·진행중·오입력</div></div>
+    <div class="kpi"><div class="l">정상</div><div class="v" id="kOk">-</div><div class="d" id="kOkD"></div></div>
+    <div class="kpi insp"><div class="l">정기검사 초과·임박</div><div class="v" id="kInsp">-</div><div class="d" id="kInspD"></div></div>
+  </section>
+
+  <section class="card">
+    <h2>주간 PM 계획 (초안) <span class="sub">계획일·입항 일정 확인은 담당자가 입력합니다. 입력값은 이 브라우저에만 저장됩니다.</span></h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>순위</th><th>호기</th><th>구분</th><th>주기</th><th>최근PM일</th><th>도래일</th><th>유예기한</th><th>상태</th><th>초과일수</th><th>계획일</th><th>입항 일정 확인</th><th>PM 작업항목</th><th>비고</th></tr></thead>
+        <tbody id="planBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>이번 주 PM 부품 준비 <span class="sub">합계 = 대당 수량 × 이번 주 대상 대수 · 재고 확인·구매 요청은 담당자가 합니다</span></h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>구분·타입</th><th>작업항목</th><th>부품명</th><th>대당 수량</th><th>대상 대수</th><th>합계</th><th>대상 호기</th><th>비고</th></tr></thead>
+        <tbody id="partsBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>정기검사 <span class="sub">2년 1회 · 기한 초과·이번 주·60일 이내 · 검사 신청일은 이 브라우저에만 저장됩니다</span></h2>
+    <div class="legend" id="inspLegend"></div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>호기</th><th>구분</th><th>최근검사일</th><th>검사기한</th><th>남은일수</th><th>상태</th><th>검사 신청일</th><th>비고</th></tr></thead>
+        <tbody id="inspBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>장비 현황 맵 <span class="sub">타일을 누르면 상세가 보입니다</span></h2>
+    <div class="legend" id="legend"></div>
+    <div id="map"></div>
+    <div class="detail" id="detail" aria-live="polite">장비 타일을 선택하세요.</div>
+  </section>
+
+  <div class="two">
+    <section class="card">
+      <h2>확인 필요 <span class="sub">추측하지 않고 원본 확인이 필요한 항목</span></h2>
+      <ul class="issues" id="issueList"></ul>
+    </section>
+    <section class="card">
+      <h2>다음 주 예고</h2>
+      <div class="tablewrap"><table style="min-width:0">
+        <thead><tr><th>호기</th><th>구분</th><th>최근PM일</th><th>도래일</th></tr></thead>
+        <tbody id="nextBody"></tbody>
+      </table></div>
+    </section>
+  </div>
+
+  <section class="card rules" style="margin-top:16px">
+    <details>
+      <summary>판정 기준과 이 도구에 대하여</summary>
+      <p><b>왜 만들었나:</b> 매주 월요일 30~60분 걸리던 "점검 도래 장비 찾기"를 자동화해 주 약 35분(연 약 30시간)을 줄이고, 주기 초과 장비 누락을 0건으로 만드는 것이 목표입니다. 계획일 배정과 PM 연기 판단은 안전 판단이므로 담당자가 합니다.</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>구분</th><th>호기</th><th>PM 주기</th></tr></thead>
+        <tbody>
+          <tr><td>G/C</td><td>181~190</td><td>45일</td></tr>
+          <tr><td>T/C 엔진발전기</td><td>216, 217, 218, 219, 221, 228, 229, 277, 278</td><td>30일</td></tr>
+          <tr><td>T/C 전기</td><td>215, 224~227, 271~276, 279, 422, 424~426, 428, 430~435</td><td>60일</td></tr>
+        </tbody>
+      </table></div>
+      <ul>
+        <li>최근PM일 = 정비유형 <code>PM</code> + 상태 <code>완료</code> 기록 중 가장 늦은 날짜 (고장수리·법정검사 제외)</li>
+        <li>도래일 = 최근PM일 + 주기, 유예기한 = 도래일 + 유예 7일 (<b>가정값, 확인 필요</b>)</li>
+        <li>유예기한 &lt; 주 시작일 → <span class="pill s-over">주기 초과</span> · 도래일 &lt; 주 시작일 ≤ 유예기한 → <span class="pill s-grace">유예 중</span> · 도래일이 이번 주 → <span class="pill s-week">이번 주</span> · 다음 주 → <span class="pill s-next">다음 주</span></li>
+        <li>완료 PM이 없거나, PM 진행중, 목록에 없는 호기, 주 시작일 이후 날짜는 <b>확인 필요</b>로 분리합니다.</li>
+        <li><b>PM 부품:</b> 장비마스터 엑셀의 <code>PM부품</code> 시트(열 <code>구분·타입·작업항목·부품명·수량(대당)·단위·비고</code>)를 읽습니다. 현재 등록: T/C 엔진발전기 = 필터 교체, 윤활유 교체(수량 미입력). 항목이 없는 타입은 <span class="pill s-none">미등록(확인 필요)</span>으로 둡니다.</li>
+        <li><b>정기검사:</b> 전 장비 2년(24개월) 1회. 최근검사일 = 정비유형 <code>정기검사</code>·<code>법정검사</code> + 상태 <code>완료</code> 중 가장 늦은 날짜, 검사기한 = 최근검사일 + 24개월(2/29 → 2/28). 검사기한 &lt; 주 시작일 → <span class="pill s-over">기한 초과</span> · 이번 주 → <span class="pill s-grace">이번 주 기한</span> · 주 시작일 + 60일 이내 → <span class="pill s-week">기한 임박</span>. 유예 0일·임박 60일은 <b>가정값, 확인 필요</b>.</li>
+        <li>엑셀 업로드 형식: 장비마스터 시트 열 <code>호기·구분·타입·PM주기(일)·유예(일)</code>(+ 선택 <code>정기검사주기(개월)</code>, 없으면 24), 정비이력 시트 열 <code>정비일자·호기·정비유형·상태</code> (첫 시트 또는 시트명 장비마스터/정비이력)</li>
+      </ul>
+    </details>
+  </section>
+</main>
+<footer>장비팀 하역장비 관리 · 주간 PM 도래 현황판 · 판정 로직은 13_PM도래추출기/pm_due.py와 같습니다 · 외부로 데이터를 보내지 않습니다</footer>
+
+<script id="data" type="application/json">{"master": [{"no": 181, "kind": "G/C", "type": "-", "cycle": 45, "grace": 7, "inspMonths": 24}, {"no": 182, "kind": "G/C", "type": "-", "cycle": 45, "grace": 7, "inspMonths": 24}, {"no": 183, "kind": "G/C", "type": "-", "cycle": 45, "grace": 7, "inspMonths": 24}, {"no": 184, "kind": "G/C", "type": "-", "cycle": 45, "grace": 7, "inspMonths": 24}, {"no": 185, "kind": "G/C", "type": "-", "cycle": 45, "grace": 7, "inspMonths": 24}, {"no": 186, "kind": "G/C", "type": "-", "cycle": 45, "grace": 7, "inspMonths": 24}, {"no": 187, "kind": "G/C", "type": "-", "cycle": 45, "grace": 7, "inspMonths": 24}, {"no": 188, "kind": "G/C", "type": "-", "cycle": 45, "grace": 7, "inspMonths": 24}, {"no": 189, "kind": "G/C", "type": "-", "cycle": 45, "grace": 7, "inspMonths": 24}, {"no": 190, "kind": "G/C", "type": "-", "cycle": 45, "grace": 7, "inspMonths": 24}, {"no": 216, "kind": "T/C", "type": "엔진발전기", "cycle": 30, "grace": 7, "inspMonths": 24}, {"no": 217, "kind": "T/C", "type": "엔진발전기", "cycle": 30, "grace": 7, "inspMonths": 24}, {"no": 218, "kind": "T/C", "type": "엔진발전기", "cycle": 30, "grace": 7, "inspMonths": 24}, {"no": 219, "kind": "T/C", "type": "엔진발전기", "cycle": 30, "grace": 7, "inspMonths": 24}, {"no": 221, "kind": "T/C", "type": "엔진발전기", "cycle": 30, "grace": 7, "inspMonths": 24}, {"no": 228, "kind": "T/C", "type": "엔진발전기", "cycle": 30, "grace": 7, "inspMonths": 24}, {"no": 229, "kind": "T/C", "type": "엔진발전기", "cycle": 30, "grace": 7, "inspMonths": 24}, {"no": 277, "kind": "T/C", "type": "엔진발전기", "cycle": 30, "grace": 7, "inspMonths": 24}, {"no": 278, "kind": "T/C", "type": "엔진발전기", "cycle": 30, "grace": 7, "inspMonths": 24}, {"no": 215, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 224, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 225, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 226, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 227, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 271, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 272, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 273, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 274, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 275, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 276, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 279, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 422, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 424, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 425, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 426, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 428, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 430, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 431, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 432, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 433, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 434, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}, {"no": 435, "kind": "T/C", "type": "전기", "cycle": 60, "grace": 7, "inspMonths": 24}], "history": [{"date": "2022-11-06", "no": 189, "pmType": "정기검사", "status": "완료"}, {"date": "2022-11-11", "no": 186, "pmType": "정기검사", "status": "완료"}, {"date": "2022-11-19", "no": 274, "pmType": "정기검사", "status": "완료"}, {"date": "2022-12-25", "no": 433, "pmType": "법정검사", "status": "완료"}, {"date": "2022-12-30", "no": 221, "pmType": "정기검사", "status": "완료"}, {"date": "2022-12-31", "no": 275, "pmType": "법정검사", "status": "완료"}, {"date": "2023-01-28", "no": 227, "pmType": "정기검사", "status": "완료"}, {"date": "2023-02-02", "no": 188, "pmType": "정기검사", "status": "완료"}, {"date": "2023-02-15", "no": 279, "pmType": "법정검사", "status": "완료"}, {"date": "2023-03-08", "no": 187, "pmType": "정기검사", "status": "완료"}, {"date": "2023-03-24", "no": 435, "pmType": "정기검사", "status": "완료"}, {"date": "2023-04-14", "no": 424, "pmType": "법정검사", "status": "완료"}, {"date": "2023-05-09", "no": 181, "pmType": "정기검사", "status": "완료"}, {"date": "2023-05-20", "no": 225, "pmType": "정기검사", "status": "완료"}, {"date": "2023-05-26", "no": 278, "pmType": "정기검사", "status": "완료"}, {"date": "2023-06-17", "no": 272, "pmType": "정기검사", "status": "완료"}, {"date": "2023-06-24", "no": 271, "pmType": "법정검사", "status": "완료"}, {"date": "2023-06-26", "no": 425, "pmType": "정기검사", "status": "완료"}, {"date": "2023-07-27", "no": 426, "pmType": "정기검사", "status": "완료"}, {"date": "2023-08-26", "no": 190, "pmType": "정기검사", "status": "완료"}, {"date": "2023-09-19", "no": 185, "pmType": "법정검사", "status": "완료"}, {"date": "2023-09-19", "no": 434, "pmType": "법정검사", "status": "완료"}, {"date": "2023-09-22", "no": 224, "pmType": "정기검사", "status": "완료"}, {"date": "2023-09-26", "no": 226, "pmType": "정기검사", "status": "완료"}, {"date": "2023-10-10", "no": 183, "pmType": "정기검사", "status": "완료"}, {"date": "2023-11-08", "no": 277, "pmType": "법정검사", "status": "완료"}, {"date": "2023-11-10", "no": 184, "pmType": "법정검사", "status": "완료"}, {"date": "2023-11-26", "no": 422, "pmType": "정기검사", "status": "완료"}, {"date": "2023-12-15", "no": 229, "pmType": "법정검사", "status": "완료"}, {"date": "2023-12-19", "no": 228, "pmType": "정기검사", "status": "완료"}, {"date": "2023-12-22", "no": 430, "pmType": "법정검사", "status": "완료"}, {"date": "2023-12-23", "no": 432, "pmType": "정기검사", "status": "완료"}, {"date": "2024-01-08", "no": 218, "pmType": "정기검사", "status": "완료"}, {"date": "2024-02-10", "no": 216, "pmType": "정기검사", "status": "완료"}, {"date": "2024-02-14", "no": 276, "pmType": "정기검사", "status": "완료"}, {"date": "2024-04-24", "no": 215, "pmType": "법정검사", "status": "완료"}, {"date": "2024-05-22", "no": 219, "pmType": "정기검사", "status": "완료"}, {"date": "2024-05-25", "no": 428, "pmType": "법정검사", "status": "완료"}, {"date": "2024-06-17", "no": 182, "pmType": "정기검사", "status": "완료"}, {"date": "2024-06-23", "no": 217, "pmType": "정기검사", "status": "완료"}, {"date": "2024-09-07", "no": 273, "pmType": "정기검사", "status": "완료"}, {"date": "2024-11-06", "no": 189, "pmType": "정기검사", "status": "완료"}, {"date": "2024-11-11", "no": 186, "pmType": "정기검사", "status": "완료"}, {"date": "2024-11-19", "no": 274, "pmType": "정기검사", "status": "완료"}, {"date": "2024-12-25", "no": 433, "pmType": "법정검사", "status": "완료"}, {"date": "2024-12-30", "no": 221, "pmType": "정기검사", "status": "완료"}, {"date": "2024-12-31", "no": 275, "pmType": "법정검사", "status": "완료"}, {"date": "2025-01-28", "no": 227, "pmType": "정기검사", "status": "완료"}, {"date": "2025-02-02", "no": 188, "pmType": "정기검사", "status": "완료"}, {"date": "2025-02-15", "no": 279, "pmType": "법정검사", "status": "완료"}, {"date": "2025-03-08", "no": 187, "pmType": "정기검사", "status": "완료"}, {"date": "2025-03-24", "no": 435, "pmType": "정기검사", "status": "완료"}, {"date": "2025-04-14", "no": 424, "pmType": "법정검사", "status": "완료"}, {"date": "2025-05-09", "no": 181, "pmType": "정기검사", "status": "완료"}, {"date": "2025-05-20", "no": 225, "pmType": "정기검사", "status": "완료"}, {"date": "2025-05-26", "no": 278, "pmType": "정기검사", "status": "완료"}, {"date": "2025-06-17", "no": 272, "pmType": "정기검사", "status": "완료"}, {"date": "2025-06-24", "no": 271, "pmType": "법정검사", "status": "완료"}, {"date": "2025-06-26", "no": 425, "pmType": "정기검사", "status": "완료"}, {"date": "2025-07-27", "no": 426, "pmType": "정기검사", "status": "완료"}, {"date": "2025-08-26", "no": 190, "pmType": "정기검사", "status": "완료"}, {"date": "2025-09-19", "no": 185, "pmType": "법정검사", "status": "완료"}, {"date": "2025-09-19", "no": 434, "pmType": "법정검사", "status": "완료"}, {"date": "2025-09-22", "no": 224, "pmType": "정기검사", "status": "완료"}, {"date": "2025-09-26", "no": 226, "pmType": "정기검사", "status": "완료"}, {"date": "2025-10-10", "no": 183, "pmType": "정기검사", "status": "완료"}, {"date": "2025-11-08", "no": 277, "pmType": "법정검사", "status": "완료"}, {"date": "2025-11-10", "no": 184, "pmType": "법정검사", "status": "완료"}, {"date": "2025-11-26", "no": 422, "pmType": "정기검사", "status": "완료"}, {"date": "2025-12-15", "no": 229, "pmType": "법정검사", "status": "완료"}, {"date": "2025-12-19", "no": 228, "pmType": "정기검사", "status": "완료"}, {"date": "2025-12-22", "no": 430, "pmType": "법정검사", "status": "완료"}, {"date": "2025-12-23", "no": 432, "pmType": "정기검사", "status": "완료"}, {"date": "2026-01-08", "no": 218, "pmType": "정기검사", "status": "완료"}, {"date": "2026-02-10", "no": 216, "pmType": "정기검사", "status": "완료"}, {"date": "2026-02-14", "no": 276, "pmType": "정기검사", "status": "완료"}, {"date": "2026-04-24", "no": 215, "pmType": "법정검사", "status": "완료"}, {"date": "2026-05-06", "no": 271, "pmType": "PM", "status": "완료"}, {"date": "2026-05-14", "no": 422, "pmType": "PM", "status": "완료"}, {"date": "2026-05-16", "no": 272, "pmType": "PM", "status": "완료"}, {"date": "2026-05-22", "no": 219, "pmType": "정기검사", "status": "완료"}, {"date": "2026-05-24", "no": 433, "pmType": "PM", "status": "완료"}, {"date": "2026-05-25", "no": 428, "pmType": "법정검사", "status": "완료"}, {"date": "2026-05-31", "no": 276, "pmType": "PM", "status": "완료"}, {"date": "2026-06-02", "no": 225, "pmType": "PM", "status": "완료"}, {"date": "2026-06-04", "no": 424, "pmType": "PM", "status": "완료"}, {"date": "2026-06-05", "no": 435, "pmType": "PM", "status": "완료"}, {"date": "2026-06-06", "no": 434, "pmType": "PM", "status": "완료"}, {"date": "2026-06-11", "no": 273, "pmType": "PM", "status": "완료"}, {"date": "2026-06-17", "no": 182, "pmType": "정기검사", "status": "완료"}, {"date": "2026-06-21", "no": 224, "pmType": "PM", "status": "완료"}, {"date": "2026-06-23", "no": 217, "pmType": "정기검사", "status": "완료"}, {"date": "2026-06-25", "no": 430, "pmType": "PM", "status": "완료"}, {"date": "2026-06-26", "no": 431, "pmType": "PM", "status": "완료"}, {"date": "2026-06-28", "no": 275, "pmType": "PM", "status": "완료"}, {"date": "2026-06-28", "no": 428, "pmType": "PM", "status": "완료"}, {"date": "2026-07-05", "no": 187, "pmType": "PM", "status": "완료"}, {"date": "2026-07-06", "no": 185, "pmType": "PM", "status": "완료"}, {"date": "2026-07-06", "no": 271, "pmType": "PM", "status": "완료"}, {"date": "2026-07-07", "no": 188, "pmType": "PM", "status": "완료"}, {"date": "2026-07-07", "no": 227, "pmType": "PM", "status": "완료"}, {"date": "2026-07-07", "no": 425, "pmType": "PM", "status": "완료"}, {"date": "2026-07-08", "no": 215, "pmType": "PM", "status": "완료"}, {"date": "2026-07-08", "no": 226, "pmType": "PM", "status": "완료"}, {"date": "2026-07-09", "no": 279, "pmType": "PM", "status": "완료"}, {"date": "2026-07-11", "no": 422, "pmType": "PM", "status": "완료"}, {"date": "2026-07-12", "no": 274, "pmType": "PM", "status": "완료"}, {"date": "2026-07-12", "no": 432, "pmType": "PM", "status": "완료"}, {"date": "2026-07-13", "no": 272, "pmType": "PM", "status": "완료"}, {"date": "2026-07-20", "no": 189, "pmType": "PM", "status": "완료"}, {"date": "2026-07-25", "no": 184, "pmType": "PM", "status": "완료"}, {"date": "2026-07-26", "no": 182, "pmType": "PM", "status": "완료"}, {"date": "2026-07-26", "no": 433, "pmType": "PM", "status": "완료"}, {"date": "2026-07-27", "no": 186, "pmType": "PM", "status": "완료"}, {"date": "2026-07-27", "no": 190, "pmType": "PM", "status": "완료"}, {"date": "2026-07-30", "no": 225, "pmType": "PM", "status": "완료"}, {"date": "2026-07-30", "no": 276, "pmType": "PM", "status": "완료"}, {"date": "2026-08-02", "no": 183, "pmType": "PM", "status": "완료"}, {"date": "2026-08-02", "no": 435, "pmType": "PM", "status": "완료"}, {"date": "2026-08-04", "no": 424, "pmType": "PM", "status": "완료"}, {"date": "2026-08-05", "no": 434, "pmType": "PM", "status": "완료"}, {"date": "2026-08-11", "no": 181, "pmType": "PM", "status": "완료"}, {"date": "2026-08-11", "no": 273, "pmType": "PM", "status": "완료"}, {"date": "2026-08-17", "no": 224, "pmType": "PM", "status": "완료"}, {"date": "2026-08-18", "no": 430, "pmType": "PM", "status": "완료"}, {"date": "2026-08-19", "no": 277, "pmType": "PM", "status": "완료"}, {"date": "2026-08-20", "no": 216, "pmType": "PM", "status": "완료"}, {"date": "2026-08-21", "no": 431, "pmType": "PM", "status": "완료"}, {"date": "2026-08-22", "no": 185, "pmType": "PM", "status": "완료"}, {"date": "2026-08-23", "no": 187, "pmType": "PM", "status": "완료"}, {"date": "2026-08-23", "no": 188, "pmType": "PM", "status": "완료"}, {"date": "2026-08-25", "no": 428, "pmType": "PM", "status": "완료"}, {"date": "2026-08-28", "no": 275, "pmType": "PM", "status": "완료"}, {"date": "2026-09-03", "no": 189, "pmType": "PM", "status": "완료"}, {"date": "2026-09-04", "no": 184, "pmType": "PM", "status": "완료"}, {"date": "2026-09-05", "no": 226, "pmType": "PM", "status": "완료"}, {"date": "2026-09-05", "no": 227, "pmType": "PM", "status": "완료"}, {"date": "2026-09-05", "no": 425, "pmType": "PM", "status": "완료"}, {"date": "2026-09-06", "no": 217, "pmType": "PM", "status": "완료"}, {"date": "2026-09-06", "no": 219, "pmType": "PM", "status": "완료"}, {"date": "2026-09-06", "no": 271, "pmType": "PM", "status": "완료"}, {"date": "2026-09-07", "no": 218, "pmType": "PM", "status": "완료"}, {"date": "2026-09-07", "no": 273, "pmType": "정기검사", "status": "완료"}, {"date": "2026-09-08", "no": 278, "pmType": "PM", "status": "완료"}, {"date": "2026-09-09", "no": 215, "pmType": "PM", "status": "완료"}, {"date": "2026-09-09", "no": 221, "pmType": "PM", "status": "완료"}, {"date": "2026-09-09", "no": 279, "pmType": "PM", "status": "완료"}, {"date": "2026-09-09", "no": 422, "pmType": "PM", "status": "완료"}, {"date": "2026-09-10", "no": 229, "pmType": "PM", "status": "완료"}, {"date": "2026-09-10", "no": 274, "pmType": "PM", "status": "완료"}, {"date": "2026-09-11", "no": 186, "pmType": "PM", "status": "완료"}, {"date": "2026-09-11", "no": 190, "pmType": "PM", "status": "완료"}, {"date": "2026-09-12", "no": 182, "pmType": "PM", "status": "완료"}, {"date": "2026-09-12", "no": 228, "pmType": "PM", "status": "완료"}, {"date": "2026-09-12", "no": 272, "pmType": "PM", "status": "완료"}, {"date": "2026-09-13", "no": 432, "pmType": "PM", "status": "완료"}, {"date": "2026-09-14", "no": 277, "pmType": "PM", "status": "완료"}, {"date": "2026-09-16", "no": 183, "pmType": "PM", "status": "완료"}, {"date": "2026-09-21", "no": 216, "pmType": "PM", "status": "완료"}, {"date": "2026-09-24", "no": 181, "pmType": "PM", "status": "완료"}, {"date": "2026-09-24", "no": 433, "pmType": "PM", "status": "완료"}, {"date": "2026-09-27", "no": 225, "pmType": "PM", "status": "완료"}, {"date": "2026-09-30", "no": 276, "pmType": "PM", "status": "완료"}, {"date": "2026-09-30", "no": 424, "pmType": "PM", "status": "완료"}, {"date": "2026-09-30", "no": 435, "pmType": "PM", "status": "완료"}, {"date": "2026-10-02", "no": 434, "pmType": "PM", "status": "완료"}, {"date": "2026-10-04", "no": 185, "pmType": "PM", "status": "완료"}, {"date": "2026-10-04", "no": 187, "pmType": "PM", "status": "완료"}, {"date": "2026-10-04", "no": 188, "pmType": "PM", "status": "완료"}, {"date": "2026-10-04", "no": 219, "pmType": "PM", "status": "완료"}, {"date": "2026-10-04", "no": 221, "pmType": "PM", "status": "완료"}, {"date": "2026-10-08", "no": 217, "pmType": "BM", "status": "완료"}, {"date": "2026-10-08", "no": 218, "pmType": "PM", "status": "완료"}, {"date": "2026-10-08", "no": 278, "pmType": "PM", "status": "완료"}, {"date": "2026-10-09", "no": 189, "pmType": "BM", "status": "완료"}, {"date": "2026-10-11", "no": 217, "pmType": "PM", "status": "완료"}, {"date": "2026-10-11", "no": 229, "pmType": "PM", "status": "완료"}, {"date": "2026-10-12", "no": 273, "pmType": "PM", "status": "완료"}, {"date": "2026-10-13", "no": 424, "pmType": "BM", "status": "완료"}, {"date": "2026-10-15", "no": 277, "pmType": "PM", "status": "완료"}, {"date": "2026-10-16", "no": 216, "pmType": "BM", "status": "완료"}, {"date": "2026-10-16", "no": 224, "pmType": "PM", "status": "완료"}, {"date": "2026-10-16", "no": 228, "pmType": "PM", "status": "완료"}, {"date": "2026-10-16", "no": 272, "pmType": "BM", "status": "완료"}, {"date": "2026-10-17", "no": 278, "pmType": "BM", "status": "완료"}, {"date": "2026-10-18", "no": 186, "pmType": "BM", "status": "완료"}, {"date": "2026-10-19", "no": 216, "pmType": "PM", "status": "완료"}, {"date": "2026-10-20", "no": 430, "pmType": "PM", "status": "완료"}, {"date": "2026-10-21", "no": 188, "pmType": "BM", "status": "완료"}, {"date": "2026-10-21", "no": 189, "pmType": "PM", "status": "완료"}, {"date": "2026-10-22", "no": 184, "pmType": "PM", "status": "진행중"}, {"date": "2026-10-22", "no": 425, "pmType": "BM", "status": "완료"}, {"date": "2026-10-23", "no": 431, "pmType": "PM", "status": "완료"}, {"date": "2026-10-24", "no": 186, "pmType": "PM", "status": "완료"}, {"date": "2026-10-24", "no": 275, "pmType": "PM", "status": "완료"}, {"date": "2026-10-26", "no": 182, "pmType": "PM", "status": "완료"}, {"date": "2026-10-26", "no": 428, "pmType": "PM", "status": "완료"}, {"date": "2026-10-26", "no": 430, "pmType": "BM", "status": "완료"}, {"date": "2026-10-28", "no": 190, "pmType": "PM", "status": "완료"}, {"date": "2026-10-28", "no": 228, "pmType": "BM", "status": "완료"}, {"date": "2026-10-28", "no": 275, "pmType": "BM", "status": "완료"}, {"date": "2026-11-02", "no": 183, "pmType": "PM", "status": "완료"}, {"date": "2026-11-04", "no": 219, "pmType": "PM", "status": "완료"}, {"date": "2026-11-05", "no": 226, "pmType": "PM", "status": "완료"}, {"date": "2026-11-05", "no": 227, "pmType": "PM", "status": "완료"}, {"date": "2026-11-05", "no": 425, "pmType": "PM", "status": "완료"}, {"date": "2026-11-06", "no": 215, "pmType": "PM", "status": "완료"}, {"date": "2026-11-06", "no": 218, "pmType": "PM", "status": "완료"}, {"date": "2026-11-06", "no": 220, "pmType": "PM", "status": "완료"}, {"date": "2026-11-06", "no": 221, "pmType": "PM", "status": "완료"}, {"date": "2026-11-07", "no": 274, "pmType": "PM", "status": "완료"}, {"date": "2026-11-07", "no": 278, "pmType": "PM", "status": "완료"}, {"date": "2026-11-07", "no": 279, "pmType": "PM", "status": "완료"}, {"date": "2026-11-08", "no": 217, "pmType": "PM", "status": "완료"}, {"date": "2026-11-08", "no": 279, "pmType": "BM", "status": "완료"}, {"date": "2026-11-09", "no": 181, "pmType": "PM", "status": "완료"}, {"date": "2026-11-10", "no": 432, "pmType": "PM", "status": "완료"}, {"date": "2026-11-12", "no": 185, "pmType": "BM", "status": "완료"}, {"date": "2026-11-12", "no": 228, "pmType": "PM", "status": "완료"}, {"date": "2026-11-12", "no": 229, "pmType": "PM", "status": "완료"}, {"date": "2026-11-13", "no": 186, "pmType": "정기검사", "status": "진행중"}, {"date": "2026-11-14", "no": 181, "pmType": "BM", "status": "완료"}, {"date": "2026-11-15", "no": 184, "pmType": "BM", "status": "완료"}, {"date": "2026-12-16", "no": 272, "pmType": "PM", "status": "완료"}], "parts": [{"kind": "T/C", "type": "엔진발전기", "item": "필터 교체", "part": "필터", "qty": null, "unit": "개", "note": "필터 종류(엔진오일·연료·에어 등)·수량 확인 필요"}, {"kind": "T/C", "type": "엔진발전기", "item": "윤활유 교체", "part": "윤활유", "qty": null, "unit": "L", "note": "규격·교체량 확인 필요"}], "source": "장비마스터 장비마스터.xlsx · 정비이력 PM이력_가상.xlsx (224행)"}</script>
+
+<script id="logic">
+/* ===== 판정 로직 (pm_due.py와 동일 규칙) ===== */
+const DAY = 86400000;
+function dayOf(y, m, d) { return Date.UTC(y, m - 1, d) / DAY; }
+function parseDay(v) {
+  if (v === null || v === undefined || v === '') throw new Error('날짜가 비어 있음');
+  if (typeof v === 'number') {
+    if (v > 20000 && v < 80000) return Math.floor(v) - 25569; // 엑셀 일련번호
+    throw new Error('날짜로 읽을 수 없음: ' + v);
+  }
+  if (Object.prototype.toString.call(v) === '[object Date]') return dayOf(v.getFullYear(), v.getMonth() + 1, v.getDate());
+  const m = String(v).trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (!m) throw new Error('날짜로 읽을 수 없음: ' + v);
+  return dayOf(+m[1], +m[2], +m[3]);
+}
+function fmtDay(n) { return n === null || n === undefined ? '' : new Date(n * DAY).toISOString().slice(0, 10); }
+const PRIORITY = { '주기 초과': 0, '도래(유예 중)': 1, '이번 주 도래': 2, '다음 주 도래': 3, '정상': 4 };
+function classify(due, grace, ws, we) {
+  const limit = due + grace;
+  if (limit < ws) return '주기 초과';
+  if (due < ws) return '도래(유예 중)';
+  if (due <= we) return '이번 주 도래';
+  if (due <= we + 7) return '다음 주 도래';
+  return '정상';
+}
+/* 정기검사: 전 장비 2년(24개월) 1회. 유예 0일·임박 60일은 가정값(확인 필요) */
+const INSPECT_TYPES = ['정기검사', '법정검사'];
+const INSPECT_WARN_DAYS = 60;
+const INSPECT_PRIORITY = { '기한 초과': 0, '이번 주 기한': 1, '기한 임박': 2, '이력 없음(확인 필요)': 3, '정상': 4 };
+function addMonths(day, n) {
+  const d = new Date(day * DAY);
+  const t = d.getUTCMonth() + n, y = d.getUTCFullYear() + Math.floor(t / 12), m = ((t % 12) + 12) % 12;
+  for (const dd of [d.getUTCDate(), 28]) {  // 2/29 → 평년 2/28
+    const x = new Date(Date.UTC(y, m, dd));
+    if (x.getUTCMonth() === m) return x.getTime() / DAY;
+  }
+}
+function classifyInspection(due, ws, we, warn = INSPECT_WARN_DAYS) {
+  if (due < ws) return '기한 초과';
+  if (due <= we) return '이번 주 기한';
+  if (due <= ws + warn) return '기한 임박';
+  return '정상';
+}
+function analyzeInspection(master, masterList, rows, ws, we, issues) {
+  const lastDone = new Map(), inProg = new Map();
+  for (const { rowNo, no, d, st } of rows) {
+    if (!master.has(no)) {
+      issues.push({ no, kind: '정기검사 목록에 없는 호기', text: `${rowNo}행 ${fmtDay(d)} 정기검사 기록 — 장비마스터에 없는 호기(확인 필요)` });
+      continue;
+    }
+    if (d > ws) {
+      issues.push({ no, kind: '정기검사 미래 날짜', text: `${rowNo}행 검사일 ${fmtDay(d)}이 주 시작일 ${fmtDay(ws)}보다 늦음 — 오입력으로 보고 판정에서 제외` });
+      continue;
+    }
+    if (st === '완료') { if (!lastDone.has(no) || d > lastDone.get(no)) lastDone.set(no, d); }
+    else if (!inProg.has(no) || d > inProg.get(no).d) inProg.set(no, { d, st });
+  }
+  const out = [];
+  for (const m of masterList) {
+    const months = m.inspMonths || 24;
+    const row = { no: m.no, kind: m.kind, type: m.type, months, last: null, due: null, left: null, status: '', note: '' };
+    const last = lastDone.has(m.no) ? lastDone.get(m.no) : null;
+    if (inProg.has(m.no) && (last === null || inProg.get(m.no).d >= last)) {
+      const p = inProg.get(m.no);
+      row.note = `${fmtDay(p.d)} 정기검사 '${p.st}' — 완료되면 판정이 바뀜`;
+      issues.push({ no: m.no, kind: '정기검사 미완료', text: `${fmtDay(p.d)} 정기검사 상태 '${p.st}'. 직전 완료 검사 기준으로 판정함` });
+    }
+    if (last === null) {
+      row.status = '이력 없음(확인 필요)';
+      issues.push({ no: m.no, kind: '정기검사 이력 없음', text: '완료된 정기검사(법정검사) 기록이 없음 — 검사증·CMMS 확인 필요' });
+    } else {
+      row.last = last; row.due = addMonths(last, months); row.left = row.due - ws;
+      row.status = classifyInspection(row.due, ws, we);
+    }
+    out.push(row);
+  }
+  out.sort((a, b) => ((INSPECT_PRIORITY[a.status] ?? 9) - (INSPECT_PRIORITY[b.status] ?? 9)) ||
+    ((a.due ?? Infinity) - (b.due ?? Infinity)) || (a.no - b.no));
+  return out;
+}
+/* PM 부품: parts = [{kind,type,item,part,qty,unit,note}] */
+function partsOf(parts, r) { return (parts || []).filter(p => p.kind === r.kind && p.type === r.type); }
+function itemsText(parts, r) {
+  const lst = partsOf(parts, r);
+  return lst.length ? [...new Set(lst.map(p => p.item))].join(', ') : '미등록(확인 필요)';
+}
+function partsNeed(parts, targets) {
+  const groups = new Map();
+  for (const r of targets) {
+    const k = r.kind + '|' + r.type;
+    if (!groups.has(k)) groups.set(k, { kind: r.kind, type: r.type, nos: [] });
+    groups.get(k).nos.push(r.no);
+  }
+  const out = [];
+  for (const g of groups.values()) {
+    const base = { kind: g.kind, type: g.type, count: g.nos.length, nos: [...g.nos].sort((a, b) => a - b).join(', ') };
+    const lst = partsOf(parts, g);
+    if (!lst.length) {
+      out.push({ ...base, item: '미등록(확인 필요)', part: '', qty: null, unit: '', total: null, note: "장비마스터 'PM부품' 시트에 이 타입의 항목을 등록해야 함" });
+      continue;
+    }
+    for (const p of lst) {
+      const total = typeof p.qty === 'number' ? p.qty * g.nos.length : null;
+      out.push({ ...base, ...p, total, note: p.note || (total !== null ? '' : '대당 수량 미입력(확인 필요)') });
+    }
+  }
+  return out;
+}
+function analyze(masterList, history, ws) {
+  const we = ws + 6;
+  const master = new Map(masterList.map(m => [m.no, m]));
+  const issues = [], lastDone = new Map(), inProg = new Map(), inspRows = [];
+  history.forEach((r, idx) => {
+    const rowNo = idx + 2;
+    let no, d;
+    try {
+      no = parseInt(r.no, 10);
+      if (Number.isNaN(no)) throw new Error('호기를 읽을 수 없음: ' + r.no);
+      d = parseDay(r.date);
+    } catch (e) {
+      issues.push({ no: r.no, kind: '입력 오류', text: rowNo + '행 읽기 실패: ' + e.message });
+      return;
+    }
+    const kind = String(r.pmType ?? '').trim();
+    if (INSPECT_TYPES.includes(kind)) { inspRows.push({ rowNo, no, d, st: String(r.status ?? '').trim() }); return; }
+    if (kind.toUpperCase() !== 'PM') return;
+    if (!master.has(no)) {
+      issues.push({ no, kind: '목록에 없는 호기', text: `${rowNo}행 ${fmtDay(d)} PM 기록 — 장비마스터에 없는 호기(오입력 또는 신규 장비 확인 필요)` });
+      return;
+    }
+    if (d > ws) {
+      issues.push({ no, kind: '미래 날짜', text: `${rowNo}행 PM일 ${fmtDay(d)}이 주 시작일 ${fmtDay(ws)}보다 늦음 — 오입력으로 보고 판정에서 제외` });
+      return;
+    }
+    const st = String(r.status ?? '').trim();
+    if (st === '완료') {
+      if (!lastDone.has(no) || d > lastDone.get(no)) lastDone.set(no, d);
+    } else if (!inProg.has(no) || d > inProg.get(no).d) {
+      inProg.set(no, { d, st });
+    }
+  });
+  const result = [];
+  for (const m of masterList) {
+    const row = { ...m, last: null, due: null, limit: null, status: '', over: null, note: '' };
+    const last = lastDone.has(m.no) ? lastDone.get(m.no) : null;
+    if (inProg.has(m.no) && (last === null || inProg.get(m.no).d >= last)) {
+      const p = inProg.get(m.no);
+      row.note = `${fmtDay(p.d)} PM '${p.st}' — 완료되면 판정이 바뀜`;
+      issues.push({ no: m.no, kind: 'PM 미완료', text: `${fmtDay(p.d)} PM 상태 '${p.st}'. 직전 완료 PM 기준으로 판정함` });
+    }
+    if (last === null) {
+      row.status = '이력 없음(확인 필요)';
+      issues.push({ no: m.no, kind: '이력 없음', text: '완료된 PM 기록이 없음 — 대장·CMMS 확인 필요' });
+    } else {
+      row.last = last; row.due = last + m.cycle; row.limit = row.due + m.grace;
+      row.status = classify(row.due, m.grace, ws, we);
+      row.over = row.due < ws ? ws - row.due : 0;
+    }
+    result.push(row);
+  }
+  result.sort((a, b) =>
+    ((PRIORITY[a.status] ?? 9) - (PRIORITY[b.status] ?? 9)) ||
+    ((b.over || 0) - (a.over || 0)) ||
+    ((a.due ?? Infinity) - (b.due ?? Infinity)) ||
+    (a.no - b.no));
+  const inspection = analyzeInspection(master, masterList, inspRows, ws, we, issues);
+  return { result, issues, we, inspection };
+}
+if (typeof module !== 'undefined') module.exports = { parseDay, fmtDay, classify, analyze, dayOf, addMonths, classifyInspection, itemsText, partsNeed };
+</script>
+
+<script>
+/* ===== 화면 ===== */
+(function () {
+  const $ = id => document.getElementById(id);
+  const DEFAULT = JSON.parse($('data').textContent);
+  let masterList = DEFAULT.master, history = DEFAULT.history, parts = DEFAULT.parts || [], srcText = DEFAULT.source, isDefault = true;
+  const INSP_CLASS = { '기한 초과': 's-over', '이번 주 기한': 's-grace', '기한 임박': 's-week', '이력 없음(확인 필요)': 's-none', '정상': 's-ok' };
+  const INSP_ALERT = ['기한 초과', '이번 주 기한', '기한 임박'];
+  const inspKey = r => `${r.no}|${fmtDay(r.due)}`;
+  const qtyText = (q, u) => q === null || q === undefined ? '' : `${+q.toFixed(3)}${u || ''}`;
+  let current = null, selectedNo = null;
+  const STATUS_CLASS = { '주기 초과': 's-over', '도래(유예 중)': 's-grace', '이번 주 도래': 's-week', '다음 주 도래': 's-next', '정상': 's-ok', '이력 없음(확인 필요)': 's-none' };
+  const SHORT = { '주기 초과': '초과', '도래(유예 중)': '유예 중', '이번 주 도래': '이번 주', '다음 주 도래': '다음 주', '정상': '정상', '이력 없음(확인 필요)': '이력 없음' };
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+  };
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const kindLabel = m => m.type && m.type !== '-' ? `${m.kind} ${m.type}` : m.kind;
+
+  // 테마
+  const savedTheme = store.get('pm-theme');
+  if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+  $('themeBtn').addEventListener('click', () => {
+    const cur = document.documentElement.dataset.theme ||
+      (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    store.set('pm-theme', next);
+  });
+
+  function todayDay() { const t = new Date(); return dayOf(t.getFullYear(), t.getMonth() + 1, t.getDate()); }
+  function mondayOf(day) { const wd = (new Date(day * DAY).getUTCDay() + 6) % 7; return day - wd; }
+  function isoWeek(day) {
+    const d = new Date(day * DAY); const th = new Date(d); th.setUTCDate(d.getUTCDate() + 3 - ((d.getUTCDay() + 6) % 7));
+    const y = th.getUTCFullYear(); const jan4 = new Date(Date.UTC(y, 0, 4));
+    const w = 1 + Math.round(((th - jan4) / DAY - 3 + ((jan4.getUTCDay() + 6) % 7)) / 7);
+    return `${y}-W${String(w).padStart(2, '0')}`;
+  }
+  // URL ?week=YYYY-MM-DD 로 시작 주 지정 가능 (검증용)
+  let ws = mondayOf(todayDay());
+  try { const q = new URLSearchParams(location.search).get('week'); if (q) ws = mondayOf(parseDay(q)); } catch (e) {}
+
+  function showError(msg) { const b = $('errBanner'); b.textContent = msg; b.hidden = !msg; }
+
+  function render() {
+    current = analyze(masterList, history, ws);
+    const { result, issues, we, inspection } = current;
+    $('weekInput').value = fmtDay(ws);
+    $('weekLabel').textContent = `${fmtDay(ws)} (월) ~ ${fmtDay(we)} (일) · ${isoWeek(ws)}`;
+    $('srcLabel').textContent = '데이터: ' + srcText;
+    $('dataBanner').hidden = !isDefault;
+
+    const cnt = {}; result.forEach(r => cnt[r.status] = (cnt[r.status] || 0) + 1);
+    const targets = result.filter(r => ['주기 초과', '도래(유예 중)', '이번 주 도래'].includes(r.status));
+    $('kTarget').textContent = targets.length + '대';
+    $('kTargetD').textContent = `초과 ${cnt['주기 초과'] || 0} · 유예 중 ${cnt['도래(유예 중)'] || 0} · 이번 주 ${cnt['이번 주 도래'] || 0}`;
+    $('kNext').textContent = (cnt['다음 주 도래'] || 0) + '대';
+    $('kIssue').textContent = issues.length + '건';
+    $('kOk').textContent = (cnt['정상'] || 0) + '대';
+    $('kOkD').textContent = `전체 ${result.length}대 중`;
+    const icnt = {}; inspection.forEach(r => icnt[r.status] = (icnt[r.status] || 0) + 1);
+    const ialert = inspection.filter(r => INSP_ALERT.includes(r.status));
+    $('kInsp').textContent = ialert.length + '대';
+    $('kInspD').textContent = `초과 ${icnt['기한 초과'] || 0} · 이번 주 ${icnt['이번 주 기한'] || 0} · 60일 내 ${icnt['기한 임박'] || 0}`;
+
+    // 계획표
+    const saved = store.get('pm-plan:' + fmtDay(ws)) || {};
+    $('planBody').innerHTML = targets.length ? targets.map((r, i) => {
+      const s = saved[r.no] || {};
+      return `<tr>
+        <td class="num">${i + 1}</td><td><b>${r.no}</b></td><td>${esc(kindLabel(r))}</td><td class="num">${r.cycle}일</td>
+        <td>${fmtDay(r.last)}</td><td>${fmtDay(r.due)}</td><td>${fmtDay(r.limit)}</td>
+        <td><span class="pill ${STATUS_CLASS[r.status]}">${esc(r.status)}</span></td><td class="num">${r.over}</td>
+        <td><input type="date" data-no="${r.no}" data-f="date" value="${esc(s.date || '')}" aria-label="${r.no}호기 계획일"></td>
+        <td><label><input type="checkbox" data-no="${r.no}" data-f="port" ${s.port ? 'checked' : ''}> 확인</label></td>
+        <td>${partsOf(parts, r).length ? esc(itemsText(parts, r)) : '<span class="pill s-none">미등록(확인 필요)</span>'}</td>
+        <td class="note">${esc(r.note)}</td></tr>`;
+    }).join('') : '<tr><td colspan="13" class="empty">이번 주 PM 대상 장비가 없습니다.</td></tr>';
+
+    // 부품 준비
+    const need = partsNeed(parts, targets);
+    $('partsBody').innerHTML = need.length ? need.map(n => `<tr>
+        <td>${esc(kindLabel(n))}</td>
+        <td>${n.item === '미등록(확인 필요)' ? '<span class="pill s-none">미등록(확인 필요)</span>' : esc(n.item)}</td>
+        <td>${esc(n.part)}</td><td class="num">${qtyText(n.qty, n.unit)}</td><td class="num">${n.count}</td>
+        <td class="num"><b>${qtyText(n.total, n.unit)}</b></td><td>${esc(n.nos)}</td><td class="note">${esc(n.note)}</td></tr>`).join('')
+      : '<tr><td colspan="8" class="empty">이번 주 PM 대상 장비가 없습니다.</td></tr>';
+
+    // 정기검사
+    const isaved = store.get('pm-insp') || {};
+    $('inspLegend').innerHTML = Object.keys(INSP_CLASS).map(s => `<span class="pill ${INSP_CLASS[s]}">${esc(s)} ${icnt[s] || 0}</span>`).join('');
+    const ishow = inspection.filter(r => r.status !== '정상');
+    $('inspBody').innerHTML = ishow.length ? ishow.map(r => `<tr>
+        <td><b>${r.no}</b></td><td>${esc(kindLabel(r))}</td><td>${fmtDay(r.last)}</td><td>${fmtDay(r.due)}</td>
+        <td class="num">${r.left ?? ''}</td><td><span class="pill ${INSP_CLASS[r.status]}">${esc(r.status)}</span></td>
+        <td>${r.due !== null ? `<input type="date" data-k="${esc(inspKey(r))}" value="${esc(isaved[inspKey(r)] || '')}" aria-label="${r.no}호기 검사 신청일">` : ''}</td>
+        <td class="note">${esc(r.note)}</td></tr>`).join('')
+      : '<tr><td colspan="8" class="empty">기한 초과·임박 장비가 없습니다.</td></tr>';
+    const inspByNo = new Map(inspection.map(r => [r.no, r]));
+
+    // 맵
+    const groups = [['G/C', '-'], ['T/C', '엔진발전기'], ['T/C', '전기']];
+    const known = new Set(groups.map(g => g.join('|')));
+    const extra = [...new Set(result.map(r => r.kind + '|' + r.type))].filter(k => !known.has(k)).map(k => k.split('|'));
+    $('map').innerHTML = groups.concat(extra).map(([k, t]) => {
+      const items = result.filter(r => r.kind === k && r.type === t).sort((a, b) => a.no - b.no);
+      if (!items.length) return '';
+      const cyc = items[0].cycle;
+      return `<div class="map-group"><h3>${esc(t !== '-' ? k + ' ' + t : k)} · ${items.length}대 · 주기 ${cyc}일</h3><div class="tiles">` +
+        items.map(r => {
+          let sub = SHORT[r.status];
+          if (r.status === '주기 초과' || r.status === '도래(유예 중)') sub = `+${r.over}일`;
+          else if (r.due !== null && r.status !== '정상') sub = SHORT[r.status];
+          else if (r.due !== null) sub = `D-${r.due - ws}`;
+          const ir = inspByNo.get(r.no);
+          const flag = ir && (INSP_ALERT.includes(ir.status) || ir.due === null);
+          return `<button type="button" class="tile ${STATUS_CLASS[r.status]} ${r.no === selectedNo ? 'sel' : ''}" data-no="${r.no}" title="${r.no}호기 · ${esc(r.status)}${flag ? ' · 정기검사 ' + esc(ir.status) : ''}"><b>${r.no}</b><span>${esc(sub)}</span>${flag ? '<i class="flag">검</i>' : ''}</button>`;
+        }).join('') + '</div></div>';
+    }).join('');
+    $('legend').innerHTML = Object.keys(STATUS_CLASS).map(s => `<span class="pill ${STATUS_CLASS[s]}">${esc(SHORT[s])} ${cnt[s] || 0}</span>`).join('') +
+      '<span class="pill s-none" style="border-style:solid">검 = 정기검사 초과·임박·이력 없음</span>';
+    renderDetail();
+
+    // 확인 필요 / 다음 주
+    $('issueList').innerHTML = issues.length ? issues.map(it => `<li><b>${esc(it.no)}</b> <span class="pill s-none">${esc(it.kind)}</span> ${esc(it.text)}</li>`).join('') : '<li>없음</li>';
+    const nx = result.filter(r => r.status === '다음 주 도래');
+    $('nextBody').innerHTML = nx.length ? nx.map(r => `<tr><td><b>${r.no}</b></td><td>${esc(kindLabel(r))}</td><td>${fmtDay(r.last)}</td><td>${fmtDay(r.due)}</td></tr>`).join('') : '<tr><td colspan="4" class="empty">없음</td></tr>';
+  }
+
+  function renderDetail() {
+    const r = current && current.result.find(x => x.no === selectedNo);
+    if (!r) { $('detail').textContent = '장비 타일을 선택하세요.'; return; }
+    $('detail').innerHTML = `<b>${r.no}호기</b> (${esc(kindLabel(r))}, 주기 ${r.cycle}일) · <span class="pill ${STATUS_CLASS[r.status]}">${esc(r.status)}</span><br>` +
+      (r.last !== null ? `최근 PM ${fmtDay(r.last)} → 도래 ${fmtDay(r.due)} · 유예기한 ${fmtDay(r.limit)}` : '완료된 PM 기록이 없습니다. 대장·CMMS를 확인하세요.') +
+      (r.note ? `<br>${esc(r.note)}` : '') +
+      `<br>PM 작업항목: ${esc(itemsText(parts, r))}`;
+    const ir = current.inspection.find(x => x.no === r.no);
+    if (ir) $('detail').innerHTML += `<br>정기검사 <span class="pill ${INSP_CLASS[ir.status]}">${esc(ir.status)}</span> ` +
+      (ir.last !== null ? `최근 ${fmtDay(ir.last)} → 기한 ${fmtDay(ir.due)} (남은 ${ir.left}일)` : '완료된 정기검사 기록이 없습니다. 검사증·CMMS를 확인하세요.') +
+      (ir.note ? ` · ${esc(ir.note)}` : '');
+  }
+
+  // 이벤트
+  $('map').addEventListener('click', e => { const t = e.target.closest('.tile'); if (!t) return; selectedNo = +t.dataset.no; render(); });
+  $('planBody').addEventListener('change', e => {
+    const el = e.target; if (!el.dataset.no) return;
+    const key = 'pm-plan:' + fmtDay(ws); const saved = store.get(key) || {};
+    saved[el.dataset.no] = saved[el.dataset.no] || {};
+    saved[el.dataset.no][el.dataset.f] = el.type === 'checkbox' ? el.checked : el.value;
+    if (!store.set(key, saved)) showError('이 브라우저에서는 입력값을 저장할 수 없습니다. 내보내기 전에 페이지를 새로 고치지 마세요.');
+  });
+  $('inspBody').addEventListener('change', e => {
+    const el = e.target; if (!el.dataset.k) return;
+    const saved = store.get('pm-insp') || {};
+    if (el.value) saved[el.dataset.k] = el.value; else delete saved[el.dataset.k];
+    if (!store.set('pm-insp', saved)) showError('이 브라우저에서는 입력값을 저장할 수 없습니다. 내보내기 전에 페이지를 새로 고치지 마세요.');
+  });
+  $('prevWeek').addEventListener('click', () => { ws -= 7; render(); });
+  $('nextWeek').addEventListener('click', () => { ws += 7; render(); });
+  $('thisWeek').addEventListener('click', () => { ws = mondayOf(todayDay()); render(); });
+  $('weekInput').addEventListener('change', e => {
+    if (!e.target.value) return;
+    const d = parseDay(e.target.value), m = mondayOf(d);
+    showError(d !== m ? `${e.target.value}은 월요일이 아니어서 그 주 월요일(${fmtDay(m)})로 맞췄습니다.` : '');
+    ws = m; render();
+  });
+
+  // 엑셀 업로드
+  function readSheet(file, preferred, extra) {
+    return new Promise((resolve, reject) => {
+      if (typeof XLSX === 'undefined') { reject(new Error('엑셀 읽기 라이브러리를 불러오지 못했습니다(인터넷 연결 필요).')); return; }
+      const fr = new FileReader();
+      fr.onload = () => {
+        try {
+          const wb = XLSX.read(fr.result, { type: 'array' });
+          const name = wb.SheetNames.includes(preferred) ? preferred : wb.SheetNames[0];
+          const rows = XLSX.utils.sheet_to_json(wb.Sheets[name], { defval: null, raw: true });
+          rows.extra = extra && wb.SheetNames.includes(extra) ? XLSX.utils.sheet_to_json(wb.Sheets[extra], { defval: null, raw: true }) : null;
+          resolve(rows);
+        } catch (e) { reject(e); }
+      };
+      fr.onerror = () => reject(fr.error);
+      fr.readAsArrayBuffer(file);
+    });
+  }
+  function need(rows, cols, what) {
+    if (!rows.length) throw new Error(`${what}에 데이터가 없습니다.`);
+    const miss = cols.filter(c => !(c in rows[0]));
+    if (miss.length) throw new Error(`${what}에 필요한 열이 없습니다: ${miss.join(', ')}`);
+  }
+  $('fileMaster').addEventListener('change', async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const rows = await readSheet(f, '장비마스터', 'PM부품');
+      need(rows, ['호기', '구분', '타입', 'PM주기(일)', '유예(일)'], '장비마스터');
+      const list = rows.filter(r => r['호기'] !== null).map(r => ({ no: parseInt(r['호기'], 10), kind: String(r['구분']), type: String(r['타입'] ?? '-'), cycle: parseInt(r['PM주기(일)'], 10), grace: parseInt(r['유예(일)'], 10),
+        inspMonths: r['정기검사주기(개월)'] ? parseInt(r['정기검사주기(개월)'], 10) : 24 }));
+      if (list.some(m => [m.no, m.cycle, m.grace, m.inspMonths].some(Number.isNaN))) throw new Error('호기·주기·유예·정기검사주기 열에 숫자가 아닌 값이 있습니다.');
+      const s = v => String(v ?? '').trim();
+      const toQty = v => typeof v === 'number' ? v : (/^\d+(\.\d+)?$/.test(s(v)) ? parseFloat(s(v)) : null);
+      parts = (rows.extra || []).filter(r => s(r['작업항목'])).map(r => ({ kind: s(r['구분']), type: s(r['타입']), item: s(r['작업항목']),
+        part: s(r['부품명']), qty: toQty(r['수량(대당)']), unit: s(r['단위']), note: s(r['비고']) }));
+      masterList = list; isDefault = false; srcText = `장비마스터 ${f.name} · ` + srcText.split(' · ').pop();
+      showError(rows.extra ? '' : "장비마스터에 'PM부품' 시트가 없어 PM 작업항목이 모두 미등록으로 표시됩니다."); render();
+    } catch (err) { showError('장비마스터를 읽지 못했습니다: ' + err.message); }
+    e.target.value = '';
+  });
+  $('fileHistory').addEventListener('change', async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const rows = await readSheet(f, '정비이력');
+      need(rows, ['정비일자', '호기', '정비유형', '상태'], '정비이력');
+      history = rows.map(r => ({ date: r['정비일자'], no: r['호기'], pmType: r['정비유형'], status: r['상태'] }));
+      isDefault = false; srcText = srcText.split(' · ')[0] + ` · 정비이력 ${f.name} (${rows.length}행)`;
+      showError(''); render();
+    } catch (err) { showError('정비이력을 읽지 못했습니다: ' + err.message); }
+    e.target.value = '';
+  });
+  $('resetData').addEventListener('click', () => {
+    masterList = DEFAULT.master; history = DEFAULT.history; parts = DEFAULT.parts || []; srcText = DEFAULT.source; isDefault = true; showError(''); render();
+  });
+
+  // 내보내기
+  $('exportBtn').addEventListener('click', () => {
+    const { result, issues, we, inspection } = current;
+    const saved = store.get('pm-plan:' + fmtDay(ws)) || {};
+    // 저장이 막힌 환경 대비: 화면 입력값을 직접 읽음
+    document.querySelectorAll('#planBody input[data-no]').forEach(el => {
+      saved[el.dataset.no] = saved[el.dataset.no] || {};
+      saved[el.dataset.no][el.dataset.f] = el.type === 'checkbox' ? el.checked : el.value;
+    });
+    const targets = result.filter(r => ['주기 초과', '도래(유예 중)', '이번 주 도래'].includes(r.status));
+    const plan = [['순위', '호기', '구분', '타입', 'PM주기(일)', '최근PM일', '도래일', '유예기한', '상태', '초과일수', '계획일', '입항 일정 확인', 'PM 작업항목', '비고']]
+      .concat(targets.map((r, i) => [i + 1, r.no, r.kind, r.type, r.cycle, fmtDay(r.last), fmtDay(r.due), fmtDay(r.limit), r.status, r.over,
+        (saved[r.no] || {}).date || '', (saved[r.no] || {}).port ? '확인' : '', itemsText(parts, r), r.note]));
+    const isaved = store.get('pm-insp') || {};
+    document.querySelectorAll('#inspBody input[data-k]').forEach(el => { if (el.value) isaved[el.dataset.k] = el.value; });
+    const tag = isoWeek(ws);
+    if (typeof XLSX === 'undefined') {
+      const csv = '﻿' + plan.map(row => row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+      download(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `주간PM계획_${tag}.csv`);
+      showError('엑셀 라이브러리를 불러오지 못해 CSV로 내보냈습니다.');
+      return;
+    }
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(plan), '주간PM계획(초안)');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['구분', '타입', '작업항목', '부품명', '대당 수량', '단위', '대상 대수', '합계 수량', '대상 호기', '비고']].concat(
+      partsNeed(parts, targets).map(n => [n.kind, n.type, n.item, n.part, n.qty ?? '', n.unit, n.count, n.total ?? '', n.nos, n.note]))), '이번주 부품 준비');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['호기', '구분', '타입', '최근PM일', '도래일']].concat(
+      result.filter(r => r.status === '다음 주 도래').map(r => [r.no, r.kind, r.type, fmtDay(r.last), fmtDay(r.due)]))), '다음주 예고');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['호기', '구분', '내용']].concat(issues.map(i => [i.no, i.kind, i.text]))), '확인 필요');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['호기', '구분', '타입', 'PM주기(일)', '최근PM일', '도래일', '유예기한', '상태', '초과일수', '비고']].concat(
+      [...result].sort((a, b) => a.no - b.no).map(r => [r.no, r.kind, r.type, r.cycle, fmtDay(r.last), fmtDay(r.due), fmtDay(r.limit), r.status, r.over ?? '', r.note]))), '전체 현황');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['호기', '구분', '타입', '검사주기(개월)', '최근검사일', '검사기한', '남은일수', '상태', '검사 신청일', '비고']].concat(
+      inspection.map(r => [r.no, r.kind, r.type, r.months, fmtDay(r.last), fmtDay(r.due), r.left ?? '', r.status, r.due !== null ? (isaved[inspKey(r)] || '') : '', r.note]))), '정기검사');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([[`대상 주 ${fmtDay(ws)} ~ ${fmtDay(we)} (${tag})`], ['데이터: ' + srcText], ['유예 7일은 가정값(확인 필요). 계획일·PM 연기 판단은 담당자가 한다.'], ['정기검사 2년 1회. 유예 0일·임박 60일은 가정값(확인 필요).']]), '정보');
+    XLSX.writeFile(wb, `주간PM계획_${tag}.xlsx`);
+  });
+  function download(blob, name) {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  }
+
+  render();
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+</body>
+</html>
